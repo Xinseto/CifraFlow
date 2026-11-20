@@ -87,30 +87,41 @@ export class HostBridge {
     return Boolean(typeof window !== 'undefined' && window.chrome && window.chrome.webview);
   }
 
+  isLinuxPyWebView() {
+    return Boolean(typeof window !== 'undefined' && window.pywebview && window.pywebview.api);
+  }
+
   isAndroidBridge() {
-    return Boolean(typeof window !== 'undefined' && window.CifraFlowAndroid);
+    return Boolean(typeof window !== 'undefined' && (window.CifraFlowAndroid || /Android/i.test(navigator.userAgent || '')));
   }
 
   _callNative(action, payload = {}) {
-    if (!this.isNativeWebView2()) {
-      return Promise.reject(new Error('Native WebView2 host indisponível'));
+    if (this.isNativeWebView2()) {
+      return new Promise((resolve, reject) => {
+        const id = `req_${++this.reqCounter}_${Date.now()}`;
+        this.pendingRequests.set(id, { resolve, reject });
+        window.chrome.webview.postMessage(JSON.stringify({ id, action, payload }));
+      });
     }
-    return new Promise((resolve, reject) => {
-      const id = `req_${++this.reqCounter}_${Date.now()}`;
-      this.pendingRequests.set(id, { resolve, reject });
-      window.chrome.webview.postMessage(JSON.stringify({ id, action, payload }));
-    });
+    if (this.isLinuxPyWebView() && typeof window.pywebview.api.invoke === 'function') {
+      return window.pywebview.api.invoke(action, payload);
+    }
+    return Promise.reject(new Error('Native host indisponível'));
+  }
+
+  hasNativeDesktopBridge() {
+    return this.isNativeWebView2() || this.isLinuxPyWebView();
   }
 
   async init() {
     const localSettings = this._loadLocalSettings();
-    if (this.isNativeWebView2()) {
+    if (this.hasNativeDesktopBridge()) {
       try {
         const hostState = await this._callNative('init', {});
         const mergedSettings = { ...DEFAULT_SETTINGS, ...localSettings, ...(hostState.settings || {}) };
         this.currentFolder = hostState.currentFolder || mergedSettings.lastFolder || '';
         return {
-          platform: 'windows-native-desktop',
+          platform: this.isLinuxPyWebView() ? 'linux-native-desktop' : 'windows-native-desktop',
           settings: mergedSettings,
           currentFolder: this.currentFolder,
           files: hostState.files || []
@@ -126,7 +137,7 @@ export class HostBridge {
     return {
       platform: this.isAndroidBridge() ? 'android-apk' : 'local-hybrid',
       settings: { ...DEFAULT_SETTINGS, ...localSettings },
-      currentFolder: 'Demonstracao Local (Use "Open Folder" para abrir sua pasta)',
+      currentFolder: 'Repertório Local',
       files: Array.from(this.virtualFiles.values()).map((f) => ({
         name: f.name,
         relativePath: f.relativePath,
@@ -136,7 +147,7 @@ export class HostBridge {
   }
 
   async openFolderDialog() {
-    if (this.isNativeWebView2()) {
+    if (this.hasNativeDesktopBridge()) {
       const res = await this._callNative('openFolderDialog', {
         initialFolder: this.currentFolder
       });
@@ -146,16 +157,11 @@ export class HostBridge {
       return res;
     }
 
-    if (this.isAndroidBridge() && window.CifraFlowAndroid.openFolder) {
-      const json = window.CifraFlowAndroid.openFolder();
-      return JSON.parse(json);
-    }
-
     return this._openFallbackDirectoryPicker();
   }
 
   async scanDirectory(folderPath) {
-    if (this.isNativeWebView2()) {
+    if (this.hasNativeDesktopBridge()) {
       const res = await this._callNative('scanDirectory', { folderPath });
       this.currentFolder = res.folderPath || folderPath;
       return res;
@@ -172,13 +178,13 @@ export class HostBridge {
   }
 
   async readTextFile(fullPath) {
-    if (this.isNativeWebView2() && !fullPath.startsWith('sample://')) {
+    if (this.hasNativeDesktopBridge() && !fullPath.startsWith('sample://') && !fullPath.startsWith('local://')) {
       const res = await this._callNative('readTextFile', { fullPath });
       return res.content;
     }
     const virtual = this.virtualFiles.get(fullPath);
     if (virtual) {
-      if (virtual.fileHandle) {
+      if (virtual.fileHandle && !virtual.content) {
         return await virtual.fileHandle.text();
       }
       return virtual.content;
@@ -187,7 +193,7 @@ export class HostBridge {
   }
 
   async writeTextFile(fullPath, content) {
-    if (this.isNativeWebView2() && !fullPath.startsWith('sample://')) {
+    if (this.hasNativeDesktopBridge() && !fullPath.startsWith('sample://') && !fullPath.startsWith('local://')) {
       return await this._callNative('writeTextFile', { fullPath, content });
     }
     const virtual = this.virtualFiles.get(fullPath);
@@ -200,7 +206,7 @@ export class HostBridge {
 
   async createTextFile(fileName, content) {
     const cleanName = fileName.toLowerCase().endsWith('.txt') ? fileName.trim() : `${fileName.trim()}.txt`;
-    if (this.isNativeWebView2() && this.currentFolder && !this.currentFolder.startsWith('Demonstracao')) {
+    if (this.hasNativeDesktopBridge() && this.currentFolder && !this.currentFolder.startsWith('Repertório')) {
       return await this._callNative('createTextFile', {
         folderPath: this.currentFolder,
         fileName: cleanName,
@@ -254,7 +260,9 @@ export class HostBridge {
     return new Promise((resolve) => {
       const input = document.createElement('input');
       input.type = 'file';
-      input.webkitdirectory = true;
+      if (!this.isAndroidBridge()) {
+        input.webkitdirectory = true;
+      }
       input.multiple = true;
       input.accept = '.txt,text/plain';
 
