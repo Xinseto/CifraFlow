@@ -26,6 +26,15 @@ namespace CifraFlow
         [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
         private static extern bool SetDllDirectory(string lpPathName);
 
+        [DllImport("kernel32.dll")]
+        private static extern IntPtr GetConsoleWindow();
+
+        [DllImport("user32.dll")]
+        private static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
+
+        [DllImport("user32.dll")]
+        private static extern bool SetForegroundWindow(IntPtr hWnd);
+
         public CifraFlowForm(bool selfTest, string explicitRootDir = null)
         {
             this.isSelfTest = selfTest;
@@ -69,8 +78,34 @@ namespace CifraFlow
             Directory.CreateDirectory(appData);
             this.settingsFilePath = Path.Combine(appData, "settings.json");
 
-            ApplyDarkTitleBar();
-            this.Load += (s, e) => InitializeWebView();
+            this.Load += (s, e) =>
+            {
+                ApplyDarkTitleBar();
+                InitializeWebView();
+            };
+            this.FormClosing += (s, e) =>
+            {
+                try
+                {
+                    if (webView != null)
+                    {
+                        webView.Dispose();
+                        webView = null;
+                    }
+                }
+                catch { }
+            };
+            this.Shown += (s, e) =>
+            {
+                // Garante que a janela GUI do CifraFlow apareça sempre visível e na frente do Windows Explorer
+                ShowWindow(this.Handle, 1); // SW_SHOWNORMAL
+                this.WindowState = FormWindowState.Normal;
+                this.TopMost = true;
+                this.BringToFront();
+                this.Activate();
+                SetForegroundWindow(this.Handle);
+                this.TopMost = false;
+            };
         }
 
         private void ApplyDarkTitleBar()
@@ -105,8 +140,28 @@ namespace CifraFlow
                 );
                 Directory.CreateDirectory(userDataFolder);
 
-                var env = await CoreWebView2Environment.CreateAsync(null, userDataFolder);
-                await webView.EnsureCoreWebView2Async(env);
+                bool needFallback = false;
+                try
+                {
+                    var env = await CoreWebView2Environment.CreateAsync(null, userDataFolder);
+                    await webView.EnsureCoreWebView2Async(env);
+                }
+                catch
+                {
+                    needFallback = true;
+                }
+
+                if (needFallback)
+                {
+                    string fallbackFolder = Path.Combine(
+                        Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                        "CifraFlow",
+                        "WebView2Data_" + System.Diagnostics.Process.GetCurrentProcess().Id
+                    );
+                    Directory.CreateDirectory(fallbackFolder);
+                    var envFallback = await CoreWebView2Environment.CreateAsync(null, fallbackFolder);
+                    await webView.EnsureCoreWebView2Async(envFallback);
+                }
 
                 // Auto-aprova permissão de Microfone para o Afinador de Violão em tempo real
                 webView.CoreWebView2.PermissionRequested += (s, e) =>
