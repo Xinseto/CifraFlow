@@ -7,6 +7,10 @@ export const MIN_SCROLL_SPEED = 1;
 export const MAX_SCROLL_SPEED = 15;
 export const DEFAULT_SCROLL_SPEED = 1;
 
+// Velocidade base (em pixels por segundo) para o nível 1.
+// Diminua este número para deixar a rolagem mais lenta (ex: 2, 3, 4) ou aumente para deixar mais rápida.
+export const BASE_PX_PER_SECOND = 4;
+
 /**
  * Cria o estado inicial da rolagem automática (velocidade inicial = 1).
  */
@@ -50,6 +54,6 @@ export function adjustAutoScrollSpeed(state, delta) {
  */
 export function computeScrollDeltaPx(state, dtMs) {
   if (!state || !state.active || dtMs <= 0) return 0;
-  const pxPerSecond = 8 + state.speed * 6 + Math.pow(state.speed, 1.35) * 1.8;
+  const pxPerSecond = state.speed * BASE_PX_PER_SECOND;
   return (pxPerSecond * dtMs) / 1000;
 }

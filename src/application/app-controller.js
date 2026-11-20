@@ -561,10 +561,10 @@ export class AppController {
     const container = document.getElementById('reader-scroll-container');
     if (container) {
       this.scrollAccumulator += computeScrollDeltaPx(this.state.autoScroll, dtMs);
-      if (this.scrollAccumulator >= 0.5) {
-        const wholePx = this.scrollAccumulator;
+      if (this.scrollAccumulator >= 1) {
+        const wholePx = Math.floor(this.scrollAccumulator);
         container.scrollTop += wholePx;
-        this.scrollAccumulator = 0;
+        this.scrollAccumulator -= wholePx;
 
         // Pausa automaticamente ao atingir o fim da cifra
         if (container.scrollTop + container.clientHeight >= container.scrollHeight - 2) {
