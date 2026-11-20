@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>CifraFlow — Leitor de Cifras .txt &amp; Afinador de Violão</title>
+  <link rel="stylesheet" href="./ui/styles.css" />
+</head>
+<body>
+  <div id="app-shell" class="app-shell">
+    <!-- Backdrop para Drawer no Mobile -->
+    <div id="sidebar-backdrop" class="sidebar-backdrop hidden" aria-hidden="true"></div>
+
+    <!-- Menu Lateral (Sidebar recolhível no Desktop / Drawer no Mobile) -->
+    <aside id="sidebar" class="sidebar" aria-label="Repertório e Navegação">
+      <div class="sidebar-header">
+        <div class="brand-logo">
+          <div class="brand-icon" aria-hidden="true">
+            <svg viewBox="0 0 36 36" width="28" height="28">
+              <defs>
+                <linearGradient id="cfGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stop-color="#FF8A00" />
+                  <stop offset="100%" stop-color="#EA580C" />
+                </linearGradient>
+              </defs>
+              <circle cx="18" cy="18" r="16" fill="#14171F" stroke="url(#cfGrad)" stroke-width="2.5" />
+              <path d="M12 22 A7 7 0 1 1 24 22" fill="none" stroke="#FF7A00" stroke-width="2" stroke-linecap="round" />
+              <line x1="18" y1="21" x2="18" y2="11" stroke="#22C55E" stroke-width="2.2" stroke-linecap="round" />
+              <circle cx="18" cy="21" r="2.3" fill="#22C55E" />
+            </svg>
+          </div>
+          <div class="brand-text">
+            <span class="brand-cifra">Cifra</span><span class="brand-flow">Flow</span>
+            <span class="brand-badge">LOCAL</span>
+          </div>
+        </div>
+        <button id="btn-close-drawer" class="icon-btn mobile-only" title="Fechar menu" aria-label="Fechar menu">✕</button>
+      </div>
+
+      <!-- Ações de Diretório Local (Open Folder + Nova Cifra) -->
+      <div class="folder-actions">
+        <button id="btn-open-folder" class="btn-primary-orange" title="Selecionar pasta de cifras .txt no computador">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2">
+            <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
+          </svg>
+          <span>Open Folder</span>
+        </button>
+        <button id="btn-new-song" class="btn-secondary-icon" title="Criar novo arquivo .txt na pasta atual">
+          <span>+ Nova .txt</span>
+        </button>
+      </div>
+
+      <!-- Caminho da Pasta Atual -->
+      <div class="current-folder-bar" title="Diretório local ativo">
+        <span class="folder-label">PASTA:</span>
+        <span id="folder-path-text" class="folder-path-text">Carregando...</span>
+        <span id="song-count-badge" class="song-count-badge">0</span>
+      </div>
+
+      <!-- Busca Rápida de Música -->
+      <div class="search-box">
+        <svg class="search-icon" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+        </svg>
+        <input id="input-search-song" type="search" placeholder="Buscar cifra (.txt)..." autocomplete="off" />
+      </div>
+
+      <!-- Lista de Arquivos .txt -->
+      <div id="song-list" class="song-list" role="listbox" aria-label="Lista de cifras .txt"></div>
+
+      <!-- Rodapé do Menu Lateral -->
+      <div class="sidebar-footer">
+        <span id="platform-indicator" class="platform-indicator">Desktop Nativo • 100% Offline</span>
+      </div>
+    </aside>
+
+    <!-- Área Principal -->
+    <div class="main-wrapper">
+      <!-- Barra Superior (Header + Abas + Tema Dark/Light) -->
+      <header class="topbar">
+        <div class="topbar-left">
+          <button id="btn-toggle-sidebar" class="icon-btn" title="Mostrar/Recolher Menu Lateral (Ctrl+B)" aria-label="Alternar menu lateral">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2">
+              <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>
+            </svg>
+          </button>
+          <div class="active-song-header">
+            <h1 id="current-song-title" class="current-song-title">Selecione uma cifra</h1>
+            <span id="current-song-sub" class="current-song-sub">Nenhum arquivo aberto</span>
+          </div>
+        </div>
+
+        <!-- Abas Principais (Desktop / Tablet) -->
+        <nav class="main-tabs" aria-label="Abas do aplicativo">
+          <button class="tab-btn active" data-tab="reader">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>
+            </svg>
+            <span>Leitor</span>
+          </button>
+          <button class="tab-btn" data-tab="editor">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
+            </svg>
+            <span>Editor (.txt)</span>
+            <span id="editor-dirty-dot" class="dirty-dot hidden" title="Alterações não salvas"></span>
+          </button>
+          <button class="tab-btn" data-tab="tuner">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 14a2 2 0 1 1 2-2 2 2 0 0 1-2 2zm0-4V6"/>
+            </svg>
+            <span>Afinador</span>
+          </button>
+          <button class="tab-btn" data-tab="settings">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+            </svg>
+            <span>Configurações</span>
+          </button>
+        </nav>
+
+        <!-- Ações Rápidas no Topo (Open Folder Rápido + Tema Dark/Light) -->
+        <div class="topbar-right">
+          <button id="btn-topbar-open-folder" class="btn-chip-orange" title="Abrir pasta local de cifras .txt">
+            <span>📁 Open Folder</span>
+          </button>
+          <button id="btn-theme-toggle" class="icon-btn theme-toggle-btn" title="Alternar Tema Dark / Light" aria-label="Alternar tema">
+            <span id="theme-icon">☀️</span>
+          </button>
+        </div>
+      </header>
+
+      <!-- =========================================================
+           ABA 1: LEITOR DE CIFRAS (COM DESTAQUE LARANJA E AUTO-SCROLL)
+           ========================================================= -->
+      <main id="view-reader" class="tab-view active" aria-label="Leitor de Cifras">
+        <!-- Barra de Ferramentas Ergonômica (Inspirada no CifraFlow Google Play) -->
+        <div class="reader-toolbar">
+          <div class="toolbar-group">
+            <button id="btn-toolbar-play" class="tool-btn tool-btn-orange" title="Iniciar/Pausar Rolagem Automática (Espaço)">
+              <span id="toolbar-play-label">▶ Play/Pause</span>
+            </button>
+            <button id="btn-toolbar-top" class="tool-btn" title="Voltar ao topo da cifra">
+              <span>↑ Topo</span>
+            </button>
+            <button id="btn-toolbar-scroll-status" class="tool-btn" title="Alternar rolagem automática">
+              <span>Rolagem OFF</span>
+            </button>
+          </div>
+
+          <div class="toolbar-group">
+            <button id="btn-font-minus" class="tool-btn" title="Diminuir fonte">Zoom -</button>
+            <span id="reader-font-badge" class="tool-badge">16px</span>
+            <button id="btn-font-plus" class="tool-btn" title="Aumentar fonte">Zoom +</button>
+          </div>
+
+          <div class="toolbar-group">
+            <button id="btn-transpose-down" class="tool-btn" title="Descer meio tom (-1/2)">♭ -½ Tom</button>
+            <button id="btn-transpose-reset" class="tool-badge tool-badge-clickable" title="Resetar transposição">Tom: 0</button>
+            <button id="btn-transpose-up" class="tool-btn" title="Subir meio tom (+1/2)">♯ +½ Tom</button>
+          </div>
+
+          <div class="toolbar-group">
+            <button id="btn-toggle-columns" class="tool-btn" title="Alternar entre 1 coluna e 2 colunas (como no print de referência)">
+              <span id="columns-label">☷ 1 Coluna</span>
+            </button>
+            <button id="btn-go-edit" class="tool-btn" title="Editar arquivo .txt atual">
+              <span>✏️ Editar .txt</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Superfície de Leitura Monoespaçada -->
+        <div id="reader-scroll-container" class="reader-scroll-container">
+          <div id="chord-sheet-content" class="chord-sheet-content" spellcheck="false"></div>
+        </div>
+
+        <!-- CONTROLE FLUTUANTE DE ROLAGEM AUTOMÁTICA (Idêntico ao Print 1: 1 / + / -) -->
+        <div id="autoscroll-floating-widget" class="autoscroll-floating-widget" aria-label="Controle de Rolagem Automática">
+          <div class="autoscroll-label-pill">
+            <span id="autoscroll-caption">Rolagem automática</span>
+          </div>
+          <div class="autoscroll-buttons-stack">
+            <button
+              id="btn-scroll-speed-toggle"
+              class="scroll-circle-btn scroll-speed-primary"
+              title="Clique para Ativar/Pausar a rolagem automática (Velocidade atual)"
+              aria-label="Velocidade e Play/Pause da rolagem automática"
+            >
+              <span id="scroll-speed-value">1</span>
+            </button>
+            <button
+              id="btn-scroll-speed-plus"
+              class="scroll-circle-btn scroll-step-btn"
+              title="Aumentar velocidade de rolagem (+)"
+              aria-label="Aumentar velocidade"
+            >+</button>
+            <button
+              id="btn-scroll-speed-minus"
+              class="scroll-circle-btn scroll-step-btn scroll-step-minus"
+              title="Diminuir velocidade de rolagem (-)"
+              aria-label="Diminuir velocidade"
+            >−</button>
+          </div>
+        </div>
+      </main>
+
+      <!-- =========================================================
+           ABA 2: EDITOR DE TEXTO INTEGRADO (.TXT)
+           ========================================================= -->
+      <section id="view-editor" class="tab-view hidden" aria-label="Editor de arquivo .txt">
+        <div class="editor-toolbar">
+          <div class="editor-toolbar-left">
+            <button id="btn-save-txt" class="btn-primary-orange" title="Salvar alterações diretamente no arquivo .txt no disco (Ctrl+S)">
+              <span>💾 Salvar no Disco (.txt)</span>
+            </button>
+            <button id="btn-revert-txt" class="tool-btn" title="Descartar alterações não salvas">
+              <span>↺ Reverter</span>
+            </button>
+            <span id="editor-status-msg" class="editor-status-msg">Pronto para edição</span>
+          </div>
+          <div class="quick-chord-bar" aria-label="Inserção rápida de acordes">
+            <span class="quick-label">Inserir:</span>
+            <button class="quick-chord-btn" data-insert="G ">G</button>
+            <button class="quick-chord-btn" data-insert="C9 ">C9</button>
+            <button class="quick-chord-btn" data-insert="Em ">Em</button>
+            <button class="quick-chord-btn" data-insert="Bm7 ">Bm7</button>
+            <button class="quick-chord-btn" data-insert="G/B ">G/B</button>
+            <button class="quick-chord-btn" data-insert="F#m ">F#m</button>
+            <button class="quick-chord-btn" data-insert="D ">D</button>
+            <button class="quick-chord-btn" data-insert="A ">A</button>
+            <button class="quick-chord-btn" data-insert="[Intro] ">[Intro]</button>
+            <button class="quick-chord-btn" data-insert="[Refrão]\n">[Refrão]</button>
+            <button class="quick-chord-btn" data-insert="↓↓ ↑↑ ↓↓ ↓↑">↓↓ ↑↑</button>
+          </div>
+        </div>
+
+        <div class="editor-split-workspace">
+          <div class="editor-pane">
+            <div class="pane-header">
+              <span>CÓDIGO-FONTE (.TXT MONOESPAÇADO)</span>
+              <span id="editor-file-path" class="pane-filepath"></span>
+            </div>
+            <textarea
+              id="txt-editor-textarea"
+              class="txt-editor-textarea"
+              spellcheck="false"
+              placeholder="Digite ou cole a cifra musical aqui..."
+            ></textarea>
+          </div>
+
+          <div class="editor-preview-pane">
+            <div class="pane-header">
+              <span>PRÉ-VISUALIZAÇÃO EM TEMPO REAL (DESTAQUE DE ACORDES)</span>
+            </div>
+            <div id="editor-live-preview" class="chord-sheet-content preview-surface"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- =========================================================
+           ABA 3: AFINADOR DE VIOLÃO INTEGRADO (CROMÁTICO + PADRÃO)
+           Inspirado diretamente no Print 2 da Google Play CifraFlow
+           ========================================================= -->
+      <section id="view-tuner" class="tab-view hidden" aria-label="Afinador de Violão">
+        <div class="tuner-container">
+          <div class="tuner-card">
+            <div class="tuner-top-header">
+              <h2 class="tuner-title">Afinador</h2>
+              <button id="btn-mic-toggle" class="btn-mic-toggle" title="Ativar/Desativar Microfone para detecção em tempo real">
+                <span id="mic-status-dot" class="mic-dot"></span>
+                <span id="mic-btn-label">🎙️ Ativar Microfone</span>
+              </button>
+            </div>
+
+            <!-- Seletores de Instrumento e Afinação (Idênticos ao Print da Google Play) -->
+            <div class="tuner-selectors">
+              <div class="tuner-select-box">
+                <label for="select-instrument" class="sr-only">Instrumento</label>
+                <select id="select-instrument" class="tuner-select">
+                  <option value="guitar6">Violão padrão — E A D G B E</option>
+                  <option value="acousticSteel">Violão Aço / Folk — E A D G B E</option>
+                  <option value="classical">Violão Clássico Nylon — E A D G B E</option>
+                </select>
+              </div>
+              <div class="tuner-select-box">
+                <label for="select-tuning-preset" class="sr-only">Afinação</label>
+                <select id="select-tuning-preset" class="tuner-select">
+                  <option value="standard">Afinação: Padrão — E A D G B E</option>
+                  <option value="dropD">Afinação: Drop D — D A D G B E</option>
+                  <option value="halfStepDown">Afinação: Meio Tom Abaixo (Eb)</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Subtítulo de Modo -->
+            <div class="tuner-mode-banner">
+              <span id="tuner-mode-title" class="tuner-mode-orange">Modo cromático</span>
+              <span id="tuner-mode-subtitle" class="tuner-mode-desc">Detecta qualquer nota</span>
+            </div>
+
+            <!-- Nota Principal, Frequência Hz e Cents -->
+            <div class="tuner-readout">
+              <div id="tuner-detected-note" class="tuner-detected-note">--</div>
+              <div class="tuner-metrics-row">
+                <span id="tuner-freq-hz" class="tuner-freq-badge">0.00 Hz</span>
+                <span id="tuner-cents-badge" class="tuner-cents-badge">0 cents</span>
+              </div>
+              <p id="tuner-guidance-text" class="tuner-guidance-text">
+                Aguardando o instrumento próximo ao microfone...
+              </p>
+            </div>
+
+            <!-- Medidor Analógico Semicircular em Canvas (60 FPS) -->
+            <div class="tuner-gauge-wrapper">
+              <canvas id="tuner-gauge-canvas" width="440" height="230" aria-label="Medidor de precisão em cents"></canvas>
+            </div>
+
+            <!-- As 6 Cordas do Violão (E2 A2 D3 G3 B3 E4) -->
+            <div id="tuner-strings-row" class="tuner-strings-row" aria-label="Cordas do violão"></div>
+
+            <!-- As 12 Notas Cromáticas (C C# D D# E F F# G G# A A# B) -->
+            <div id="tuner-chromatic-row" class="tuner-chromatic-row" aria-label="Notas cromáticas"></div>
+
+            <!-- Grade Inferior de Botões Ergonômicos (Idêntica ao CifraFlow da Play Store) -->
+            <div class="tuner-controls-grid">
+              <button id="btn-mode-chromatic" class="tuner-grid-btn active">Cromático</button>
+              <button id="btn-mode-string" class="tuner-grid-btn">Corda a corda</button>
+              <button id="btn-mode-eartrain" class="tuner-grid-btn">Treinar ouvido</button>
+
+              <button id="btn-prev-string" class="tuner-grid-btn">◄ Corda</button>
+              <button id="btn-play-reference" class="tuner-grid-btn tuner-btn-listen">🔊 Ouvir nota</button>
+              <button id="btn-next-string" class="tuner-grid-btn">Corda ►</button>
+            </div>
+
+            <!-- Barra de Simulação / Teste Auditivo Local (Permite validar a agulha mesmo sem violão físico plugado) -->
+            <div class="tuner-test-bench">
+              <span class="test-bench-label">Simulador DSP (Testar agulha &amp; som):</span>
+              <div class="test-bench-buttons">
+                <button id="btn-sim-flat" class="btn-chip-test" title="Simular corda frouxa (-24 cents)">♭ Corda Frouxa</button>
+                <button id="btn-sim-tuned" class="btn-chip-test btn-chip-tuned" title="Simular corda perfeitamente afinada (0 cents)">✓ Corda Afinada</button>
+                <button id="btn-sim-sharp" class="btn-chip-test" title="Simular corda apertada (+26 cents)">♯ Corda Apertada</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- =========================================================
+           ABA 4: CONFIGURAÇÕES E PERSONALIZAÇÃO
+           ========================================================= -->
+      <section id="view-settings" class="tab-view hidden" aria-label="Configurações">
+        <div class="settings-container">
+          <div class="settings-card">
+            <h2 class="settings-title">Personalização &amp; Configurações</h2>
+            <p class="settings-desc">Todas as preferências são salvas localmente no dispositivo (100% offline).</p>
+
+            <!-- Cor de Destaque dos Acordes -->
+            <div class="setting-item">
+              <div class="setting-info">
+                <h3>Cor de Destaque dos Acordes</h3>
+                <p>Padrão em Laranja (<code>#FF7A00</code>). Escolha uma predefinição de palco ou personalize:</p>
+              </div>
+              <div class="color-picker-group">
+                <div id="color-presets" class="color-presets">
+                  <button class="color-swatch active" data-color="#FF7A00" style="background:#FF7A00" title="Laranja CifraFlow (#FF7A00)"></button>
+                  <button class="color-swatch" data-color="#F97316" style="background:#F97316" title="Laranja Coral (#F97316)"></button>
+                  <button class="color-swatch" data-color="#FF5757" style="background:#FF5757" title="Coral Vivo (#FF5757)"></button>
+                  <button class="color-swatch" data-color="#38BDF8" style="background:#38BDF8" title="Azul Palco (#38BDF8)"></button>
+                  <button class="color-swatch" data-color="#22C55E" style="background:#22C55E" title="Verde Estúdio (#22C55E)"></button>
+                  <button class="color-swatch" data-color="#FACC15" style="background:#FACC15" title="Âmbar Ouro (#FACC15)"></button>
+                </div>
+                <label class="custom-color-label">
+                  <span>Cor Customizada:</span>
+                  <input id="input-custom-chord-color" type="color" value="#FF7A00" />
+                </label>
+              </div>
+            </div>
+
+            <!-- Tamanho da Fonte Monoespaçada -->
+            <div class="setting-item">
+              <div class="setting-info">
+                <h3>Tamanho da Fonte da Cifra</h3>
+                <p>Ajusta o tamanho da fonte monoespaçada no leitor e pré-visualização.</p>
+              </div>
+              <div class="setting-control-row">
+                <input id="input-font-size-range" type="range" min="12" max="28" step="1" value="16" />
+                <span id="settings-font-size-val" class="setting-value-badge">16px</span>
+              </div>
+            </div>
+
+            <!-- Tema Dark e Light -->
+            <div class="setting-item">
+              <div class="setting-info">
+                <h3>Tema Visual (Palco / Dia)</h3>
+                <p>Dark Mode reduz o brilho em apresentações noturnas; Light Mode simula folha impressa.</p>
+              </div>
+              <div class="setting-control-row">
+                <button id="btn-set-dark" class="tool-btn active">🌙 Dark Mode (Palco)</button>
+                <button id="btn-set-light" class="tool-btn">☀️ Light Mode (Claro)</button>
+              </div>
+            </div>
+
+            <!-- Exibição em Colunas -->
+            <div class="setting-item">
+              <div class="setting-info">
+                <h3>Disposição de Colunas no Desktop</h3>
+                <p>Visualize músicas inteiras lado a lado em 2 colunas ou em rolagem vertical contínua.</p>
+              </div>
+              <div class="setting-control-row">
+                <button id="btn-set-col1" class="tool-btn active">1 Coluna (Vertical)</button>
+                <button id="btn-set-col2" class="tool-btn">2 Colunas (Lado a Lado)</button>
+              </div>
+            </div>
+
+            <!-- Arquitetura Multiplataforma Desktop + Android APK -->
+            <div class="setting-item architecture-box">
+              <div class="setting-info">
+                <h3>Status da Plataforma &amp; Build Android (.apk)</h3>
+                <p>
+                  Base de código unificada em Monolito Modular (<code>src/domain</code>, <code>src/infrastructure</code>, <code>src/ui</code>).
+                  Executando nativamente no Desktop e pronta para empacotamento Android (<code>.apk</code>) via Capacitor / Tauri v2.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Barra de Navegação Inferior para Telas Mobile / Estreitas -->
+      <nav class="mobile-bottom-nav" aria-label="Navegação Mobile">
+        <button class="mobile-nav-btn active" data-tab="reader">
+          <span>📄</span>
+          <small>Leitor</small>
+        </button>
+        <button class="mobile-nav-btn" data-tab="editor">
+          <span>✏️</span>
+          <small>Editor</small>
+        </button>
+        <button class="mobile-nav-btn" data-tab="tuner">
+          <span>🎸</span>
+          <small>Afinador</small>
+        </button>
+        <button class="mobile-nav-btn" data-tab="settings">
+          <span>⚙️</span>
+          <small>Ajustes</small>
+        </button>
+      </nav>
+    </div>
+  </div>
+
+  <!-- Modal para Criar Nova Cifra (.txt) -->
+  <div id="modal-new-song" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="modal-new-title">
+    <div class="modal-card">
+      <h3 id="modal-new-title">Criar Nova Cifra (.txt)</h3>
+      <p>O arquivo será salvo diretamente na pasta aberta atualmente.</p>
+      <label class="modal-field">
+        <span>Nome do arquivo:</span>
+        <input id="input-new-song-name" type="text" placeholder="Ex: Minha Musica - Artista.txt" />
+      </label>
+      <div class="modal-actions">
+        <button id="btn-cancel-new-song" class="tool-btn">Cancelar</button>
+        <button id="btn-confirm-new-song" class="btn-primary-orange">Criar e Abrir</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast de Notificação -->
+  <div id="toast-notification" class="toast-notification hidden" role="status" aria-live="polite"></div>
+
+  <script type="module" src="./application/app-controller.js"></script>
+</body>
+</html>
