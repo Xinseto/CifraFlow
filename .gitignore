@@ -1,0 +1,17 @@
+# Dependências e ambientes
+node_modules/
+.venv/
+__pycache__/
+
+# Artefatos temporários de build e cache WebView2
+*.exe.WebView2/
+bin/obj/
+android/.gradle/
+android/app/build/
+src-tauri/target/
+dist/
+
+# Logs e arquivos locais de SO
+*.log
+.DS_Store
+Thumbs.db
