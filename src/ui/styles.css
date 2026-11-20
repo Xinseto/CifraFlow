@@ -822,22 +822,22 @@ html, body {
   overflow-y: auto;
   display: flex;
   justify-content: center;
-  align-items: flex-start;
-  padding: 18px 16px 40px;
+  align-items: center;
+  padding: 10px 16px;
 }
 
 .tuner-card {
   width: 100%;
-  max-width: 560px;
+  max-width: 540px;
   background: #08090c;
   color: #f8fafc;
   border: 1px solid rgba(255, 122, 0, 0.35);
   border-radius: 18px;
-  padding: 20px 22px;
+  padding: 14px 20px;
   box-shadow: var(--shadow-card);
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 8px;
 }
 
 .tuner-top-header {
@@ -848,7 +848,7 @@ html, body {
 }
 
 .tuner-title {
-  font-size: 1.5rem;
+  font-size: 1.3rem;
   font-weight: 800;
   color: #ffffff;
 }
@@ -857,13 +857,13 @@ html, body {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  padding: 8px 14px;
+  padding: 6px 13px;
   border-radius: 99px;
   border: 1px solid rgba(255, 122, 0, 0.5);
   background: #141720;
   color: #ffffff;
   font-weight: 700;
-  font-size: 0.82rem;
+  font-size: 0.8rem;
   cursor: pointer;
 }
 
@@ -886,19 +886,19 @@ html, body {
 }
 
 .tuner-selectors {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
   gap: 8px;
 }
 
 .tuner-select {
   width: 100%;
-  padding: 11px 14px;
-  border-radius: 12px;
+  padding: 8px 11px;
+  border-radius: 10px;
   border: 1px solid rgba(255, 122, 0, 0.55);
   background: #12141a;
   color: #ffffff;
-  font-size: 0.92rem;
+  font-size: 0.82rem;
   font-weight: 700;
   outline: none;
   cursor: pointer;
@@ -906,37 +906,36 @@ html, body {
 
 .tuner-mode-banner {
   display: flex;
-  flex-direction: column;
   align-items: center;
-  text-align: center;
-  gap: 2px;
+  justify-content: center;
+  gap: 8px;
 }
 
 .tuner-mode-orange {
-  font-size: 0.82rem;
+  font-size: 0.8rem;
   font-weight: 700;
   color: #FF7A00;
 }
 
 .tuner-mode-desc {
-  font-size: 0.9rem;
-  font-weight: 700;
-  color: #ffffff;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #cbd5e1;
 }
 
 .tuner-readout {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 6px;
+  gap: 3px;
 }
 
 .tuner-detected-note {
-  font-size: 2.8rem;
+  font-size: 2.2rem;
   font-weight: 900;
   font-family: var(--font-mono);
   color: #FF5520;
-  line-height: 1.05;
+  line-height: 1.02;
   letter-spacing: -0.03em;
 }
 
@@ -1397,12 +1396,38 @@ html, body {
     column-count: 1;
   }
 
+  .reader-toolbar {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    padding: 6px 10px;
+    gap: 6px;
+  }
+
+  .toolbar-group {
+    flex-wrap: nowrap;
+    flex-shrink: 0;
+  }
+
   .reader-scroll-container {
-    padding: 16px 14px 100px;
+    padding: 14px 12px 96px;
   }
 
   .autoscroll-floating-widget {
-    right: 12px;
-    bottom: 14px;
+    right: 10px;
+    bottom: 12px;
+  }
+
+  .autoscroll-label-pill {
+    display: none;
+  }
+
+  .scroll-circle-btn {
+    width: 40px;
+    height: 40px;
+    font-size: 1.05rem;
+  }
+
+  .tuner-selectors {
+    grid-template-columns: 1fr;
   }
 }

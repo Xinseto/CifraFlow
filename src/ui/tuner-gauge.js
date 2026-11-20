@@ -47,8 +47,8 @@ export class TunerGaugeRenderer {
     ctx.clearRect(0, 0, w, h);
 
     const cx = w / 2;
-    const cy = h - 38;
-    const radius = Math.min(w * 0.39, h - 58);
+    const cy = h - 26;
+    const radius = Math.min(w * 0.36, h - 42);
 
     // Ângulo de -50 cents (200 graus) até +50 cents (340 graus)
     const degToRad = (deg) => (deg * Math.PI) / 180;
