@@ -1,0 +1,130 @@
+name: Build & Publish Multi-Platform Releases (Windows, Android APK, Linux DEB)
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  build-linux-and-android:
+    name: Build Linux (.deb / .tar.gz) & Android (.apk)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Build Linux .deb and .tar.gz packages
+        run: |
+          python3 scripts/build-linux-deb.py
+          dpkg-deb --info dist/cifraflow_1.0.0_amd64.deb
+          dpkg-deb --contents dist/cifraflow_1.0.0_amd64.deb
+
+      - name: Set up JDK 17 for Android build
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v3
+
+      - name: Bundle unified src/ assets and official icon into Android project
+        run: |
+          mkdir -p android/app/src/main/assets/www
+          cp -r src/* android/app/src/main/assets/www/
+          for dir in mipmap-mdpi mipmap-hdpi mipmap-xhdpi mipmap-xxhdpi mipmap-xxxhdpi; do
+            mkdir -p "android/app/src/main/res/$dir"
+            cp src/assets/icon.png "android/app/src/main/res/$dir/ic_launcher.png"
+          done
+
+      - name: Compile Android APK (CifraFlow-v1.0.0-android.apk)
+        run: |
+          gradle -p android assembleDebug
+          cp android/app/build/outputs/apk/debug/app-debug.apk dist/CifraFlow-v1.0.0-android.apk
+          ls -lh dist/
+
+      - name: Upload Linux & Android artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux-and-android-packages
+          path: |
+            dist/cifraflow_1.0.0_amd64.deb
+            dist/CifraFlow-v1.0.0-linux-x64.tar.gz
+            dist/CifraFlow-v1.0.0-android.apk
+
+  build-windows:
+    name: Build Windows Installer (.exe & .zip)
+    runs-on: windows-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Fetch official Microsoft.Web.WebView2 runtime assemblies
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Path bin -Force | Out-Null
+          New-Item -ItemType Directory -Path temp_wv2 -Force | Out-Null
+          curl.exe -sSL "https://www.nuget.org/api/v2/package/Microsoft.Web.WebView2" -o temp_wv2\webview2.zip
+          Expand-Archive -Path temp_wv2\webview2.zip -DestinationPath temp_wv2\extracted -Force
+          Copy-Item "temp_wv2\extracted\lib\net45\Microsoft.Web.WebView2.Core.dll" -Destination "bin\" -Force
+          Copy-Item "temp_wv2\extracted\lib\net45\Microsoft.Web.WebView2.WinForms.dll" -Destination "bin\" -Force
+          Copy-Item "temp_wv2\extracted\runtimes\win-x64\native\WebView2Loader.dll" -Destination "bin\" -Force
+          Remove-Item temp_wv2 -Recurse -Force
+
+      - name: Build Windows Setup (.exe) via Inno Setup & Portable (.zip)
+        shell: pwsh
+        run: |
+          powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\build-windows-installer.ps1
+          if (-not (Test-Path "dist\CifraFlow-Setup-v1.0.0-win-x64.exe")) {
+            & "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" "installer\CifraFlow.iss"
+          }
+          Get-ChildItem dist | Select-Object Name, Length
+
+      - name: Upload Windows artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-packages
+          path: |
+            dist/CifraFlow-Setup-v1.0.0-win-x64.exe
+            dist/CifraFlow-v1.0.0-win-x64-portable.zip
+
+  publish-release:
+    name: Publish GitHub Release v1.0.0
+    needs: [build-linux-and-android, build-windows]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download all platform installers
+        uses: actions/download-artifact@v4
+        with:
+          path: release-assets
+          merge-multiple: true
+
+      - name: List release assets
+        run: ls -lh release-assets/
+
+      - name: Create / Update GitHub Release v1.0.0
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v1.0.0
+          name: "CifraFlow v1.0.0 — Windows, Android (.apk) & Linux (.deb)"
+          body: |
+            ## CifraFlow v1.0.0 — Leitor de Cifras `.txt` & Afinador de Violão (100% Local)
+
+            ### 📦 Instaladores Disponíveis nesta Release
+            - 🪟 **Windows (Instalador Wizard):** `CifraFlow-Setup-v1.0.0-win-x64.exe` *(Cria atalho na Área de Trabalho e Menu Iniciar com ícone oficial)*
+            - 🪟 **Windows (Portátil):** `CifraFlow-v1.0.0-win-x64-portable.zip`
+            - 🤖 **Android (Smartphone / Tablet):** `CifraFlow-v1.0.0-android.apk` *(Instalador nativo Android com WebView offline e suporte ao microfone para o Afinador)*
+            - 🐧 **Linux (Ubuntu / Debian / Mint):** `cifraflow_1.0.0_amd64.deb` *(Instale com `sudo dpkg -i cifraflow_1.0.0_amd64.deb`)*
+            - 🐧 **Linux (Tarball Universal):** `CifraFlow-v1.0.0-linux-x64.tar.gz`
+          draft: false
+          prerelease: false
+          files: |
+            release-assets/CifraFlow-Setup-v1.0.0-win-x64.exe
+            release-assets/CifraFlow-v1.0.0-win-x64-portable.zip
+            release-assets/CifraFlow-v1.0.0-android.apk
+            release-assets/cifraflow_1.0.0_amd64.deb
+            release-assets/CifraFlow-v1.0.0-linux-x64.tar.gz
