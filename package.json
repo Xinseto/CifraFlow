@@ -1,0 +1,14 @@
+{
+  "name": "cifraflow",
+  "version": "1.0.0",
+  "description": "Aplicativo local desktop e mobile (.apk) para leitura, organização, edição de cifras .txt e afinador de violão",
+  "type": "module",
+  "scripts": {
+    "test": "node --test tests/domain.test.js",
+    "start": "powershell -ExecutionPolicy Bypass -File scripts/run-desktop.ps1",
+    "build:windows": "powershell -ExecutionPolicy Bypass -File scripts/build-windows.ps1",
+    "build:apk": "powershell -ExecutionPolicy Bypass -File scripts/build-apk.ps1"
+  },
+  "author": "Douglas Freitas",
+  "license": "MIT"
+}
