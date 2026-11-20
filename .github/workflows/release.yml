@@ -70,9 +70,12 @@ jobs:
           New-Item -ItemType Directory -Path temp_wv2 -Force | Out-Null
           curl.exe -sSL "https://www.nuget.org/api/v2/package/Microsoft.Web.WebView2" -o temp_wv2\webview2.zip
           Expand-Archive -Path temp_wv2\webview2.zip -DestinationPath temp_wv2\extracted -Force
-          Copy-Item "temp_wv2\extracted\lib\net45\Microsoft.Web.WebView2.Core.dll" -Destination "bin\" -Force
-          Copy-Item "temp_wv2\extracted\lib\net45\Microsoft.Web.WebView2.WinForms.dll" -Destination "bin\" -Force
-          Copy-Item "temp_wv2\extracted\runtimes\win-x64\native\WebView2Loader.dll" -Destination "bin\" -Force
+          $core = Get-ChildItem -Path temp_wv2\extracted -Recurse -Filter "Microsoft.Web.WebView2.Core.dll" | Where-Object { $_.FullName -like "*net4*" } | Select-Object -First 1
+          $winf = Get-ChildItem -Path temp_wv2\extracted -Recurse -Filter "Microsoft.Web.WebView2.WinForms.dll" | Where-Object { $_.FullName -like "*net4*" } | Select-Object -First 1
+          $load = Get-ChildItem -Path temp_wv2\extracted -Recurse -Filter "WebView2Loader.dll" | Where-Object { $_.FullName -like "*win-x64*" } | Select-Object -First 1
+          Copy-Item $core.FullName -Destination "bin\Microsoft.Web.WebView2.Core.dll" -Force
+          Copy-Item $winf.FullName -Destination "bin\Microsoft.Web.WebView2.WinForms.dll" -Force
+          Copy-Item $load.FullName -Destination "bin\WebView2Loader.dll" -Force
           Remove-Item temp_wv2 -Recurse -Force
 
       - name: Build Windows Setup (.exe) via Inno Setup & Portable (.zip)

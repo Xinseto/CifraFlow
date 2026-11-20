@@ -5,7 +5,7 @@
 #define MyAppURL "https://github.com/Xinseto/CifraFlow"
 
 [Setup]
-AppId={{8E74A34C-52B1-4F2A-9E88-CIFRAFLOW100}
+AppId={{8E74A34C-52B1-4F2A-9E88-C1F4AF100100}
 AppName={#MyAppName}
 AppVersion={#MyAppVersion}
 AppPublisher={#MyAppPublisher}
