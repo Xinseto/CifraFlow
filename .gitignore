@@ -5,7 +5,7 @@ __pycache__/
 
 # Artefatos temporários de build e cache WebView2
 *.exe.WebView2/
-bin/obj/
+bin/
 android/.gradle/
 android/app/build/
 src-tauri/target/
