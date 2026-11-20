@@ -122,6 +122,14 @@ html, body {
   gap: 10px;
 }
 
+.brand-icon-img {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  object-fit: cover;
+  display: block;
+}
+
 .brand-text {
   display: flex;
   align-items: baseline;

@@ -69,7 +69,7 @@ export class AppController {
 
     const initData = await this.bridge.init();
     this.state.settings = { ...this.state.settings, ...(initData.settings || {}) };
-    this.state.autoScroll = createAutoScrollState(this.state.settings.scrollSpeed || 1);
+    this.state.autoScroll = createAutoScrollState(1);
     this.state.currentFolder = initData.currentFolder || '';
     this.state.files = initData.files || [];
 
@@ -83,14 +83,6 @@ export class AppController {
     } else {
       this.renderEmptyReaderState();
     }
-
-    const platformEl = document.getElementById('platform-indicator');
-    if (platformEl) {
-      platformEl.textContent =
-        initData.platform === 'windows-native-desktop'
-          ? 'Windows Desktop Nativo • 100% Offline'
-          : 'Modo Local Multiplataforma • 100% Offline';
-    }
   }
 
   bindEvents() {
@@ -99,9 +91,8 @@ export class AppController {
     document.getElementById('btn-close-drawer')?.addEventListener('click', () => this.toggleSidebar(false));
     document.getElementById('sidebar-backdrop')?.addEventListener('click', () => this.toggleSidebar(false));
 
-    // Open Folder (Sidebar + Topbar)
+    // Open Folder (Sidebar)
     document.getElementById('btn-open-folder')?.addEventListener('click', () => this.handleOpenFolder());
-    document.getElementById('btn-topbar-open-folder')?.addEventListener('click', () => this.handleOpenFolder());
 
     // Busca de Cifras
     document.getElementById('input-search-song')?.addEventListener('input', (e) => {

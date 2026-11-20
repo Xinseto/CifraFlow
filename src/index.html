@@ -3,7 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>CifraFlow — Leitor de Cifras .txt &amp; Afinador de Violão</title>
+  <title>CifraFlow - Leitor de Cifras</title>
+  <link rel="icon" type="image/png" href="./assets/icon.png" />
   <link rel="stylesheet" href="./ui/styles.css" />
 </head>
 <body>
@@ -16,22 +17,10 @@
       <div class="sidebar-header">
         <div class="brand-logo">
           <div class="brand-icon" aria-hidden="true">
-            <svg viewBox="0 0 36 36" width="28" height="28">
-              <defs>
-                <linearGradient id="cfGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                  <stop offset="0%" stop-color="#FF8A00" />
-                  <stop offset="100%" stop-color="#EA580C" />
-                </linearGradient>
-              </defs>
-              <circle cx="18" cy="18" r="16" fill="#14171F" stroke="url(#cfGrad)" stroke-width="2.5" />
-              <path d="M12 22 A7 7 0 1 1 24 22" fill="none" stroke="#FF7A00" stroke-width="2" stroke-linecap="round" />
-              <line x1="18" y1="21" x2="18" y2="11" stroke="#22C55E" stroke-width="2.2" stroke-linecap="round" />
-              <circle cx="18" cy="21" r="2.3" fill="#22C55E" />
-            </svg>
+            <img src="./assets/icon.png" alt="CifraFlow" class="brand-icon-img" />
           </div>
           <div class="brand-text">
             <span class="brand-cifra">Cifra</span><span class="brand-flow">Flow</span>
-            <span class="brand-badge">LOCAL</span>
           </div>
         </div>
         <button id="btn-close-drawer" class="icon-btn mobile-only" title="Fechar menu" aria-label="Fechar menu">✕</button>
@@ -67,11 +56,6 @@
 
       <!-- Lista de Arquivos .txt -->
       <div id="song-list" class="song-list" role="listbox" aria-label="Lista de cifras .txt"></div>
-
-      <!-- Rodapé do Menu Lateral -->
-      <div class="sidebar-footer">
-        <span id="platform-indicator" class="platform-indicator">Desktop Nativo • 100% Offline</span>
-      </div>
     </aside>
 
     <!-- Área Principal -->
@@ -119,11 +103,8 @@
           </button>
         </nav>
 
-        <!-- Ações Rápidas no Topo (Open Folder Rápido + Tema Dark/Light) -->
+        <!-- Ação Rápida no Topo (Tema Dark/Light) -->
         <div class="topbar-right">
-          <button id="btn-topbar-open-folder" class="btn-chip-orange" title="Abrir pasta local de cifras .txt">
-            <span>📁 Open Folder</span>
-          </button>
           <button id="btn-theme-toggle" class="icon-btn theme-toggle-btn" title="Alternar Tema Dark / Light" aria-label="Alternar tema">
             <span id="theme-icon">☀️</span>
           </button>

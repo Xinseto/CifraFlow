@@ -9,7 +9,7 @@
   "app": {
     "windows": [
       {
-        "title": "CifraFlow — Leitor de Cifras .txt & Afinador de Violão",
+        "title": "CifraFlow - Leitor de Cifras",
         "width": 1320,
         "height": 840,
         "minWidth": 360,

@@ -1,5 +1,5 @@
 @echo off
-title CifraFlow - Aplicativo Desktop Local
+title CifraFlow - Leitor de Cifras
 cd /d "%~dp0"
 powershell.exe -STA -NoProfile -ExecutionPolicy Bypass -File "%~dp0scripts\run-desktop.ps1"
 if errorlevel 1 (

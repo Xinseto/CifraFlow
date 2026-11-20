@@ -36,7 +36,7 @@ try {
     }
 
     Write-Host "==========================================================" -ForegroundColor Cyan
-    Write-Host " CifraFlow - Aplicativo Desktop Local (100% Offline)" -ForegroundColor Cyan
+    Write-Host " CifraFlow - Leitor de Cifras" -ForegroundColor Cyan
     Write-Host " Mantenha esta janela aberta enquanto utiliza o CifraFlow." -ForegroundColor Gray
     Write-Host "==========================================================" -ForegroundColor Cyan
 

@@ -38,7 +38,7 @@ namespace CifraFlow
         public CifraFlowForm(bool selfTest, string explicitRootDir = null)
         {
             this.isSelfTest = selfTest;
-            this.Text = "CifraFlow — Leitor de Cifras .txt & Afinador de Violão (100% Local)";
+            this.Text = "CifraFlow - Leitor de Cifras";
             this.Width = 1320;
             this.Height = 840;
             this.MinimumSize = new Size(360, 620);
@@ -65,6 +65,15 @@ namespace CifraFlow
             }
 
             this.srcDir = Path.Combine(this.appRootDir, "src");
+            try
+            {
+                string icoPath = Path.Combine(this.srcDir, "assets", "icon.ico");
+                if (File.Exists(icoPath))
+                {
+                    this.Icon = new Icon(icoPath);
+                }
+            }
+            catch { }
             string binDir = Path.Combine(this.appRootDir, "bin");
             if (Directory.Exists(binDir))
             {
